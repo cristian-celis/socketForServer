@@ -13,11 +13,16 @@ public class ManagerModel implements Contract.Model{
     private Server server;
     private Contract.Presenter presenter;
     private RouteBuilder routeBuilder;
+    private Rectangle rectangle;
     public ManagerModel(Contract.Presenter presenter, String[] args){
         this.presenter = presenter;
+        rectangle = new Rectangle(0, 0, 25, 25);
         routeBuilder = new RouteBuilder();
         this.args = args;
         initConnection();
+    }
+    public Rectangle getRectangle(){
+        return rectangle;
     }
 
     public void initConnection(){
@@ -30,12 +35,15 @@ public class ManagerModel implements Contract.Model{
 
     @Override
     public void setByPoint(int coorX, int coorY){
-        routeBuilder.setByPoint(coorX, coorY);
+        System.out.println("Nueva posicion -> x: " + coorX + ", y: " + coorY);
+        server.changes = true;
+        this.rectangle.setLocation(coorX, coorY);
+        //routeBuilder.setByPoint(coorX, coorY);
     }
 
     @Override
     public void buildCoordinatesPath(){
-        routeBuilder.fillRouteGaps();
+        //routeBuilder.fillRouteGaps();
     }
     public int[] getPoints(int position){
         return routeBuilder.getPoint(position);
