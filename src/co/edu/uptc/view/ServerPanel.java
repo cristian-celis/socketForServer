@@ -56,14 +56,15 @@ public class ServerPanel extends JPanel implements MouseListener, MouseMotionLis
     public void mouseDragged(MouseEvent e) {
         Graphics2D g;
         if (isRunning && isReading) {
+            g = (Graphics2D) getGraphics();
+            rectangle.setLocation(e.getX(), e.getY());
+            g.draw(rectangle);
+            this.repaint();
             view.getPresenter().setByPoint(e.getX(), e.getY());
         }
     }
 
     public void drawNewRec(Rectangle newRec){
-        /*Graphics2D g = (Graphics2D) getGraphics();
-        rectangle.setLocation(rectangle.x, rectangle.y);
-        g.drawRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);*/
         this.rectangle = newRec;
         this.repaint();
     }

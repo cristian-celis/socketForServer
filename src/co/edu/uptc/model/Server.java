@@ -1,83 +1,73 @@
 package co.edu.uptc.model;
 
 import java.awt.*;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.SocketException;
 
 public class Server {
-    private Connection conection;
+    private Connection connection;
     DataOutputStream dataOutputStream;
-    DataInputStream dataInputStream;
-    private ManagerModel managerModel;
-    private int count = 0;
+    private final ManagerModel managerModel;
     String host;
     int port;
+    private Rectangle currentRectangle;
+    boolean changes;
 
     public Server(String host, int port, ManagerModel managerModel) {
+        changes = false;
+        currentRectangle = new Rectangle(0, 1, 25, 25);
         this.host = host;
         this.port = port;
         this.managerModel = managerModel;
     }
 
     public void innit(String host, int port) {
-        conection = new Connection();
-        conection.setType("server");
-        conection.setPort(port);
-        conection.setHost(host);
-        conection.connect();
+        connection = new Connection();
+        connection.setType("server");
+        connection.setPort(port);
+        connection.setHost(host);
+        connection.connect();
     }
 
     public void send() {
         innit(host, port);
         try {
-            Thread thread = new Thread() {
-                @Override
-                public void run() {
+            Thread thread = new Thread(() -> {
+                try {
+                    connection.socket = connection.serverSocket.accept();
+                    dataOutputStream = new DataOutputStream(connection.socket.getOutputStream());
+                    while (true) {
+                        while(!changes)
+                            Thread.sleep(10);
+                        dataOutputStream.writeUTF(infoToSend());
+                    }
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                } finally {
                     try {
-                        conection.socket = conection.serverSocket.accept();
-                        dataOutputStream = new DataOutputStream(conection.socket.getOutputStream());
-                        while (true) {
-                            System.out.println("Envia -> " + infoToSend(count));
-                            dataOutputStream.writeUTF(infoToSend(count));
-                            dataOutputStream.flush();
-                            count++;
-                            sleep(1000);
+                        if (dataOutputStream != null) {
+                            dataOutputStream.close();
                         }
-                    } catch (IOException | InterruptedException e) {
+                        if (connection.socket != null) {
+                            connection.socket.close();
+                        }
+                    } catch (IOException e) {
                         throw new RuntimeException(e);
-                    } finally {
-                        try {
-                            if (dataOutputStream != null) {
-                                dataOutputStream.close();
-                            }
-                            if (conection.socket != null) {
-                                conection.socket.close();
-                            }
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
                     }
                 }
-            };
+            });
             thread.start();
+            thread.setPriority(Thread.MAX_PRIORITY);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public String infoToSend(int position){
-        int[] points = managerModel.getPoints(position);
-        String toReturn = points[0] == -1? points[1] + "," + points[2] : points[0] + "," + points[1];
-        paintRec(toReturn);
-        return toReturn;
-    }
-
-    public void paintRec(String points){
-        String[] coordenates = points.split(",");
-        Rectangle rectangle = new Rectangle(Integer.parseInt(coordenates[0]), Integer.parseInt(coordenates[1]), 25,25);
-        managerModel.getPresenter().drawNewRec(rectangle);
+    public String infoToSend() {
+        int globalRecX = managerModel.getRectangle().x;
+        int globalRecY = managerModel.getRectangle().y;
+        currentRectangle.setLocation(globalRecX, globalRecY);
+        changes = false;
+        return currentRectangle.x + "," + currentRectangle.y;
     }
 }
