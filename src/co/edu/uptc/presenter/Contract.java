@@ -7,6 +7,7 @@ public interface Contract {
         void setByPoint(int coorX, int coorY);
         void buildCoordinatesPath();
         void sendInfo();
+        void imgPath(String ruta);
     }
     interface View{
         void drawNewRec(Rectangle rectangle);
@@ -16,5 +17,6 @@ public interface Contract {
         void setByPoint(int coorX, int coorY);
         void buildCoordinatesPath();
         void drawNewRec(Rectangle rectangle);
+        void imgPath(String ruta);
     }
 }
