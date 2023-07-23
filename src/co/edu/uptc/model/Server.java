@@ -1,5 +1,7 @@
 package co.edu.uptc.model;
 
+import com.google.gson.Gson;
+
 import java.awt.*;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,6 +14,7 @@ public class Server {
     int port;
     private Rectangle currentRectangle;
     boolean changes;
+    private int amountSectionImg = 1;
 
     public Server(String host, int port, ManagerModel managerModel) {
         changes = false;
@@ -29,19 +32,35 @@ public class Server {
         connection.connect();
     }
 
+    private String sendImage(int sectionImg){
+        //byte[] subarreglo = Arrays.copyOfRange(arreglo1, posicionInicial, posicionFinal + 1);
+        String info = new Gson().toJson(managerModel.getImage());
+        String subcadena = info.substring((sectionImg * 65000), (info.length() < ((sectionImg+1)*65000)? info.length()-1: ((sectionImg+1) * 65000)) + 1);
+        System.out.println("Info a enviar -> " + subcadena);
+        if (sectionImg == 0){
+            return subcadena.length() + "=" + subcadena;
+        }
+        return subcadena;
+    }
+
     public void send() {
+        //System.out.println("ToSend: " + sendImage());
         innit(host, port);
         try {
             Thread thread = new Thread(() -> {
                 try {
+                    int count = 0;
                     connection.socket = connection.serverSocket.accept();
                     dataOutputStream = new DataOutputStream(connection.socket.getOutputStream());
-                    while (true) {
-                        while(!changes)
+                    while (count < amountSectionImg) {
+                        System.out.println("Envio");
+                        /*while(!changes)
                             Thread.sleep(10);
-                        dataOutputStream.writeUTF(infoToSend());
+                        ataOutputStream.writeUTF(sendRectangle());*/
+                        dataOutputStream.writeUTF(sendImage(count));
+                        count++;
                     }
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 } finally {
                     try {
@@ -63,7 +82,7 @@ public class Server {
         }
     }
 
-    public String infoToSend() {
+    public String sendRectangle() {
         int globalRecX = managerModel.getRectangle().x;
         int globalRecY = managerModel.getRectangle().y;
         currentRectangle.setLocation(globalRecX, globalRecY);

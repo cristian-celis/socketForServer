@@ -32,4 +32,9 @@ public class Presenter implements Contract.Presenter{
     public void drawNewRec(Rectangle rectangle) {
         view.drawNewRec(rectangle);
     }
+
+    @Override
+    public void imgPath(String ruta) {
+        model.imgPath(ruta);
+    }
 }

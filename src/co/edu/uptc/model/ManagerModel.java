@@ -1,10 +1,18 @@
 package co.edu.uptc.model;
 
+import co.edu.uptc.pojo.Data;
+import co.edu.uptc.pojo.InformationForImage;
 import co.edu.uptc.presenter.Contract;
 import co.edu.uptc.presenter.Presenter;
+import com.google.gson.Gson;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class ManagerModel implements Contract.Model{
@@ -14,6 +22,8 @@ public class ManagerModel implements Contract.Model{
     private Contract.Presenter presenter;
     private RouteBuilder routeBuilder;
     private Rectangle rectangle;
+    private Data data;
+    private InformationForImage image;
     public ManagerModel(Contract.Presenter presenter, String[] args){
         this.presenter = presenter;
         rectangle = new Rectangle(0, 0, 25, 25);
@@ -33,12 +43,43 @@ public class ManagerModel implements Contract.Model{
             JOptionPane.showMessageDialog(null, "No esta definido como servidor");
     }
 
+    /*
+    para recibir
+    String json = "";
+    Gson gson = new Gson();
+    Objeto o = gson.fromJson(json, Objeto.class);
+     */
+
+    public void prueba(){
+        Gson gson = new Gson();
+        //String info = new Gson().toJson(data());
+    }
+
+    @Override
+    public void imgPath(String ruta){
+        try {
+            System.out.println("Llego la ruta: " + ruta);
+            File file = new File(ruta);
+            BufferedImage image = ImageIO.read(file);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", baos);
+            byte[] bytes = baos.toByteArray();
+            //65,535 -> 65,000
+            this.image = new InformationForImage(bytes);
+            baos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public InformationForImage getImage(){
+        return image;
+    }
+
     @Override
     public void setByPoint(int coorX, int coorY){
-        System.out.println("Nueva posicion -> x: " + coorX + ", y: " + coorY);
         server.changes = true;
         this.rectangle.setLocation(coorX, coorY);
-        //routeBuilder.setByPoint(coorX, coorY);
     }
 
     @Override
